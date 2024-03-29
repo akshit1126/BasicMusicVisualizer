@@ -9,7 +9,6 @@ public class MusicVisualizer : MonoBehaviour
     void DoSomething()
     {
         OutputType = OutputVoltageOrDecibel.Decibels;
-        DebugGraph = false;
         VoltageMultiplier = 1f;
         DecibelsMultiplier = 1f;
         ReferenceValue = .0005f;
@@ -28,7 +27,6 @@ public class MusicVisualizer : MonoBehaviour
     public SampleCountOptions SampleCount = SampleCountOptions._2048;
     public OutputVoltageOrDecibel OutputType = OutputVoltageOrDecibel.Decibels;
     [Header("Voltage Output")]
-    [Tooltip("Only applies when output type is set to voltage")]
     public float VoltageMultiplier = 1f;
     [Header("Decibel Output")]
     public float DecibelsMultiplier = 1f;
@@ -39,8 +37,6 @@ public class MusicVisualizer : MonoBehaviour
     [Header("dB Threshold")]
     public float Threshold = 0f;
     [Space(20, order = 2)]
-    [Header("DEBUG", order = 3)]
-    public bool DebugGraph = false;
     public float[] MusicalDecibels { get { return smoothedMusicalDecibels; } }
     public float OverallDecibelLevel { get { return smoothedOverallDecibelLevel; } }
 
@@ -61,10 +57,6 @@ public class MusicVisualizer : MonoBehaviour
     private int spectrumIndex;
     private float rms;
     private float sampleSum;
-    private float debugFrequency;
-    private float debugAmplitude;
-    private float debugPreviousFreq;
-    private float debugPreviousAmp;
     private float maxDB;
     private float mainFreq;
     private float lastMainFreq = 0f;
@@ -87,61 +79,6 @@ public class MusicVisualizer : MonoBehaviour
             ResizeSpectrumArray();
             DefineMusicalFrequencies();
         }
-
-        if (DebugGraph)
-        {
-            DebugUpdate();
-        }
-    }
-
-    // DEGBUG GRAPH FOR EDITOR
-    void OnDrawGizmos()
-    {
-        //drawing a graph in the editor to give information about overall decibles and frequencies
-        UnityEditor.Handles.color = Color.white;
-        UnityEditor.Handles.Label(transform.TransformPoint(new Vector3(-33f, -5f, 0f)), "MusicVisualizer");
-        if (DebugGraph)
-        {
-            UnityEditor.Handles.color = Color.white;
-            for (int i = 0; i < 11; i++)
-            {
-                UnityEditor.Handles.Label(transform.TransformPoint(new Vector3(-5f, i * 10f + 1f, 0f)), (i * 10).ToString());
-                UnityEditor.Handles.DrawLine(transform.TransformPoint(new Vector3(0f, 10f * i, 0f)), transform.TransformPoint(new Vector3(128f, 10f * i, 0f)));
-            }
-            for (int i = 0; i < 10; i++)
-            {
-                UnityEditor.Handles.color = Color.white;
-                UnityEditor.Handles.Label(transform.TransformPoint(new Vector3((i + 1) * 12f - 1f, -5f, 0f)), "A" + (i).ToString());
-                UnityEditor.Handles.color = Color.blue;
-                UnityEditor.Handles.DrawLine(transform.TransformPoint(new Vector3((i + 1) * 12f, 0f, 0f)), transform.TransformPoint(new Vector3((i + 1) * 12f, 100f, 0f)));
-            }
-            UnityEditor.Handles.color = new Color(1f, 1f, 1f, .1f);
-            for (int i = 1; i < 101; i++)
-            {
-                if (i % 10 != 0)
-                    UnityEditor.Handles.DrawLine(transform.TransformPoint(new Vector3(0f, i, 0f)), transform.TransformPoint(new Vector3(128f, i, 0f)));
-            }
-        }
-    }
-
-    void DebugUpdate()
-    {
-        //method to actually draw and animate the debug graph
-        for (int i = 1; i < smoothedMusicalDecibels.Length - 1; i++)
-        {
-            debugFrequency = i;
-            debugAmplitude = smoothedMusicalDecibels[i];
-            debugPreviousFreq = (i - 1);
-            debugPreviousAmp = smoothedMusicalDecibels[i - 1];
-            Debug.DrawLine(transform.TransformPoint(new Vector3(debugPreviousFreq, debugPreviousAmp, 0)), transform.TransformPoint(new Vector3(debugFrequency, debugAmplitude, 0)), Color.cyan);
-            for (int k = 0; k < 4; k++)
-            {
-                Debug.DrawLine(transform.TransformPoint(new Vector3(debugPreviousFreq + .5f, debugAmplitude - (.05f * k), 0)), transform.TransformPoint(new Vector3(debugFrequency + .5f, debugAmplitude - (.05f * k), 0)), Color.green);
-            }
-            Debug.DrawLine(transform.TransformPoint(new Vector3(0f, smoothedOverallDecibelLevel, 0)), transform.TransformPoint(new Vector3(128f, smoothedOverallDecibelLevel, 0)), Color.red);
-
-        }
-
     }
 
     void DetermineSampleCount()
